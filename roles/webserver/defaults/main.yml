@@ -1,0 +1,4 @@
+---
+# defaults file for webserver
+webserver_port: 8080
+webserver_user: webuser

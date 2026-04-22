@@ -1,0 +1,23 @@
+---
+# tasks file for webserver
+- name: Create user
+  ansible.builtin.user:
+    name: "{{ webserver_user }}"
+
+- name: Ensure httpd is installed
+  ansible.builtin.dnf:
+    name: httpd
+    state: present
+
+- name: Copy index.html
+  ansible.builtin.copy:
+    src: files/index.html
+    dest: /var/www/html/index.html
+  notify: restart httpd
+
+- name: Template httpd.conf
+  ansible.builtin.template:
+    src: templates/httpd.conf.j2
+    dest: /etc/httpd/conf/httpd.conf
+    validate: /usr/sbin/httpd -t -f %s
+  notify: validate httpd config

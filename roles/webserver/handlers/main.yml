@@ -1,0 +1,17 @@
+---
+# handlers file for webserver
+- name: validate httpd config
+  block:
+    - name: Validate httpd configuration
+      ansible.builtin.command: apachectl configtest
+      changed_when: false
+
+    - name: Restart httpd service
+      ansible.builtin.service:
+        name: httpd
+        state: restarted
+  
+- name: restart httpd
+  ansible.builtin.service:
+    name: httpd
+    state: restarted
