@@ -1,0 +1,8 @@
+---
+- name: Set up webserver
+  hosts: webservers
+  become: true
+  vars:
+    webserver_port: 9090
+  roles:
+    - webserver
