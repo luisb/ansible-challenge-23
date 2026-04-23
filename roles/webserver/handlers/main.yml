@@ -1,9 +1,5 @@
 ---
 # handlers file for webserver
-- name: validate httpd config
-  ansible.builtin.command: apachectl configtest
-  changed_when: false
-
 - name: restart httpd
   ansible.builtin.service:
     name: httpd
