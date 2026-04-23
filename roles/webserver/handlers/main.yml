@@ -3,7 +3,6 @@
 - name: validate httpd config
   ansible.builtin.command: apachectl configtest
   changed_when: false
-  notify: restart httpd
 
 - name: restart httpd
   ansible.builtin.service:
