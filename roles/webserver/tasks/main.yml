@@ -3,35 +3,36 @@
 - name: Create user
   ansible.builtin.user:
     name: "{{ webserver_user }}"
+    state: present
 
 - name: Ensure httpd is installed
   ansible.builtin.dnf:
     name: httpd
     state: present
 
+- name: Ensure SELinux allows httpd to bind to {{ webserver_port }}
+  community.general.seport:
+    ports: "{{ webserver_port }}"
+    proto: tcp
+    setype: http_port_t
+    state: present
+
 - name: Copy index.html
   ansible.builtin.copy:
-    src: files/index.html
+    src: index.html
     dest: /var/www/html/index.html
   notify: restart httpd
 
-- name: Template httpd.conf
-  block:
-    - name: Template httpd.conf and test
-      ansible.builtin.template:
-        src: templates/httpd.conf.j2
-        dest: /etc/httpd/conf/httpd.conf
-        backup: true
-        validate: /usr/sbin/httpd -t -f %s
-      register: template
-      notify: 
-        - validate httpd config
-        - restart httpd
+- name: Template httpd.conf and test
+  ansible.builtin.template:
+    src: httpd.conf.j2
+    dest: /etc/httpd/conf/httpd.conf
+    validate: /usr/sbin/httpd -t -f %s
+  notify: restart httpd
+
+- name: Ensure httpd is running
+  ansible.builtin.service:
+    name: httpd
+    state: started
+    enabled: true
     
-  rescue:
-    - name: Test failed; rollback config
-      ansible.builtin.copy:
-        src: "{{ template.backup_file }}"
-        dest: /etc/httpd/conf/httpd.conf
-      notify: restart httpd
-      when: template.backup_file is defined
