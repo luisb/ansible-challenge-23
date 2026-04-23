@@ -16,8 +16,22 @@
   notify: restart httpd
 
 - name: Template httpd.conf
-  ansible.builtin.template:
-    src: templates/httpd.conf.j2
-    dest: /etc/httpd/conf/httpd.conf
-    validate: /usr/sbin/httpd -t -f %s
-  notify: validate httpd config
+  block:
+    - name: Template httpd.conf and test
+      ansible.builtin.template:
+        src: templates/httpd.conf.j2
+        dest: /etc/httpd/conf/httpd.conf
+        backup: true
+        validate: /usr/sbin/httpd -t -f %s
+      register: template
+      notify: 
+        - validate httpd config
+        - restart httpd
+    
+  rescue:
+    - name: Test failed; rollback config
+      ansible.builtin.copy:
+        src: "{{ template.backup_file }}"
+        dest: /etc/httpd/conf/httpd.conf
+      notify: restart httpd
+      when: template.backup_file is defined
